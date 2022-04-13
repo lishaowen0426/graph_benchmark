@@ -4,6 +4,22 @@
 #include <cstdlib>
 #include "util.h"
 
+#ifdef PMEM
+#include "ralloc.hpp"
+#endif
+
+#ifdef PMEM
+#define __malloc RP_malloc
+#define __free RP_free
+#else
+#define __malloc malloc
+#define __free free
+#endif
+
+#define graph_malloc __malloc
+#define graph_free __free
+#define prop_malloc __malloc
+#define prop_free __free
 
 typedef uint32_t EdgeIndexType;
 

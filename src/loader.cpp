@@ -25,14 +25,14 @@ Graph* create_graph(const char* binary_file){
     fstat(fd, &sb);
     printf("Binary file size: %lu\n", (uint64_t)sb.st_size);
 
-    Graph* graph = (Graph*)malloc(sizeof(Graph));
+    Graph* graph = (Graph*)graph_malloc(sizeof(Graph));
     graph->nb_nodes = NB_NODES;
     graph->symmetric = SYMMETRIC; 
     assert((size_t)sb.st_size%sizeof(edge_t) == 0);
     graph->nb_edges = (size_t)sb.st_size/sizeof(edge_t);
     NB_EDGES = graph->nb_edges;
     printf("Number of edges: %lu\n", graph->nb_edges);
-    edge_t* edges = (edge_t*)malloc(graph->nb_edges*sizeof(edge_t));
+    edge_t* edges = (edge_t*)graph_malloc(graph->nb_edges*sizeof(edge_t));
     assert(edges != NULL);
 
     {
@@ -56,9 +56,9 @@ Graph* create_graph(const char* binary_file){
 
 
 void count_degree(Graph* graph, edge_t* edges, int opt){
-    graph->out_edge_offsets = (size_t*)malloc((NB_NODES+1)*sizeof(size_t));
+    graph->out_edge_offsets = (size_t*)graph_malloc((NB_NODES+1)*sizeof(size_t));
     if(graph->symmetric)
-        graph->in_edge_offsets = (size_t*)malloc((NB_NODES+1)*sizeof(size_t));
+        graph->in_edge_offsets = (size_t*)graph_malloc((NB_NODES+1)*sizeof(size_t));
 
     switch(opt){
         case 0:
@@ -131,13 +131,13 @@ void count_degree_1_atomic(Graph* graph, edge_t* edges){
 
 
 void create_edges(Graph* graph, edge_t* edges){
-    uint32_t* out_offsets = (uint32_t*)malloc(NB_NODES*sizeof(uint32_t));
-    graph->out_edges = (uint32_t*)malloc(NB_EDGES*sizeof(uint32_t));
+    uint32_t* out_offsets = (uint32_t*)graph_malloc(NB_NODES*sizeof(uint32_t));
+    graph->out_edges = (uint32_t*)graph_malloc(NB_EDGES*sizeof(uint32_t));
     memset((void*)out_offsets,0, NB_NODES*sizeof(uint32_t));
     uint32_t* in_offsets;
     if(graph->symmetric){ 
-        in_offsets = (uint32_t*)malloc(NB_NODES*sizeof(uint32_t));
-        graph->in_edges = (uint32_t*)malloc(NB_EDGES*sizeof(uint32_t));
+        in_offsets = (uint32_t*)graph_malloc(NB_NODES*sizeof(uint32_t));
+        graph->in_edges = (uint32_t*)graph_malloc(NB_EDGES*sizeof(uint32_t));
         memset((void*)in_offsets,0, NB_NODES*sizeof(uint32_t));
     }
 

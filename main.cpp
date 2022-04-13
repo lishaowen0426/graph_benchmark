@@ -3,6 +3,12 @@
 #include "loader.h"
 #include <unistd.h>
 #include "bfs.h"
+#include "pebs.h"
+#include "oneapi/tbb/global_control.h"
+
+
+
+using namespace oneapi::tbb;
 
 int THREADS;
 size_t NB_NODES;
@@ -11,11 +17,15 @@ Graph* graph;
 
 int main( int argc, char** argv){
 
+#ifdef PMEM
+    RP_init("graph",30*1024*1024*1024ULL);
+#endif
     int c;
     const char* binary;
     bool debug = false;
     int mode;
     SYMMETRIC = false;
+    THREADS = 0;
     while((c = getopt(argc, argv, "t:v:f:m:ds"))!= -1){
         switch(c){
             case 't':
@@ -42,19 +52,39 @@ int main( int argc, char** argv){
         }
     }
     if(debug){
-        THREADS = 4;
-        NB_NODES = 16;
-        binary = "/home/lsw/graph_data/small_directed_graph_binary";
+        THREADS = 8;
+        NB_NODES = 65536;
+        binary = "/home/lsw/graph_data/equal_rmat_binary_32";
         SYMMETRIC = true;
     }
-    else if(THREADS==0 || NB_NODES == 0){
+    else if(  NB_NODES == 0){
         printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -s<is_symmetric>\n");
         return 0;
     }
-    printf("Run with: %d threads, %lu nodes, binary: %s\n", THREADS, NB_NODES, binary);
-    
+
+    if(THREADS == 0) THREADS = 1;
+
+    global_control thread_limit(global_control::parameter::max_allowed_parallelism, THREADS);
+    printf("Run with: %lu worker threads, %lu nodes, binary: %s\n", global_control::active_value(global_control::parameter::max_allowed_parallelism), NB_NODES, binary);
+
     graph = create_graph(binary); 
+    
+    int perf_fd = perf_count_setup(PERF_TYPE_HARDWARE,PERF_COUNT_HW_CACHE_MISSES,0,-1 );
+    struct read_group_format perf_data;
+    uint64_t cache_misses_start, cache_misses_end;
+    read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
+    assert(perf_data.nr == 1);
+    cache_misses_start = perf_data.values[0].value;
+
     bfs_hub(graph,0,mode);
 
+    read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
+    assert(perf_data.nr == 1);
+    cache_misses_end = perf_data.values[0].value;
+    printf("cache misses: %lu\n", cache_misses_end - cache_misses_start);
+
+#ifdef PMEM
+    RP_close();
+#endif
     return 0;
 }

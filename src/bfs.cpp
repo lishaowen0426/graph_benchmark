@@ -15,9 +15,9 @@ bool* in_frontier_next;
 
 void bfs_hub(Graph* graph, uint32_t source, int opt){
     
-    visited = (bool*)malloc(graph->nb_nodes*sizeof(bool));
+    visited = (bool*)prop_malloc(graph->nb_nodes*sizeof(bool));
     memset(visited,0, graph->nb_nodes*sizeof(bool));
-    
+        
     uint64_t start, stop;
     rdtscll(start);
     switch(opt){
@@ -129,20 +129,20 @@ void bfs_pull(Graph* graph, uint32_t start){
 void bfs_pushpull(Graph* graph, uint32_t start){
     using sz_t =decltype(frontier)::size_type;
     combinable<uint64_t> connected;
+    combinable<uint64_t> edges_in_frontier;
     {
        // push 
         sz_t to_process = 0;
         frontier.push_back(start);
         __atomic_test_and_set(&(visited[start]), __ATOMIC_RELAXED);
 
-        size_t edges_in_frontier = 0;
         size_t explored =0;
         while( (to_process=frontier.size())!= 0){
             size_t unexplored = NB_EDGES - explored;
-            if(edges_in_frontier > unexplored){
+            if(edges_in_frontier.combine([](uint64_t a, uint64_t b){return a+b;}) > unexplored){
                 goto PULL;
             }else{
-                edges_in_frontier = 0;
+                edges_in_frontier.clear();
             }
             parallel_for(blocked_range<sz_t>(0, to_process),
             [&](const blocked_range<sz_t>& r){
@@ -164,7 +164,7 @@ void bfs_pushpull(Graph* graph, uint32_t start){
                     }
                 }
                 connected.local() += local_connected;
-                __atomic_add_fetch(&edges_in_frontier, local_edges_in_frontier,__ATOMIC_RELAXED);
+                edges_in_frontier.local() += local_edges_in_frontier;
                 __atomic_add_fetch(&explored, local_explored, __ATOMIC_RELAXED);
             });
             frontier.clear();
