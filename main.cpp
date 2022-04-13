@@ -67,22 +67,27 @@ int main( int argc, char** argv){
     global_control thread_limit(global_control::parameter::max_allowed_parallelism, THREADS);
     printf("Run with: %lu worker threads, %lu nodes, binary: %s\n", global_control::active_value(global_control::parameter::max_allowed_parallelism), NB_NODES, binary);
 
-    graph = create_graph(binary); 
     
+    graph = create_graph(binary); 
+    /*
     int perf_fd = perf_count_setup(PERF_TYPE_HARDWARE,PERF_COUNT_HW_CACHE_MISSES,0,-1 );
     struct read_group_format perf_data;
     uint64_t cache_misses_start, cache_misses_end;
     read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
     assert(perf_data.nr == 1);
     cache_misses_start = perf_data.values[0].value;
+    */
 
+    if(system("perf record -F 997 -e instructions:pp -a  2>&1 &")){}
+    sleep(2);
     bfs_hub(graph,0,mode);
-
+    if(system("echo pmem | sudo -S killall -INT -w perf")) {};
+    /*
     read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
     assert(perf_data.nr == 1);
     cache_misses_end = perf_data.values[0].value;
     printf("cache misses: %lu\n", cache_misses_end - cache_misses_start);
-
+    */
 #ifdef PMEM
     RP_close();
 #endif

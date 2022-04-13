@@ -35,7 +35,7 @@ void bfs_hub(Graph* graph, uint32_t source, int opt){
     }
     rdtscll(stop);
     printf("BFS-%s time %lu ( %fs )\n",((opt==0)?"push":((opt==1)?"pull":"push-pull")), stop - start, ((float)(stop - start))/(float)get_cpu_freq());
-    free(visited);
+    //prop_free(visited);
     
 
 }

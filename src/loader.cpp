@@ -50,7 +50,7 @@ Graph* create_graph(const char* binary_file){
     
     count_degree(graph,edges,1);
     create_edges(graph,edges);
-    free(edges);
+    graph_free(edges);
     return graph;
 }
 
