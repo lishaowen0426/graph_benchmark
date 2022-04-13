@@ -26,7 +26,6 @@ with open(args.input, 'r+b') as fin: # read input graph edges
         if len(edge) == 0:
             in_mm.close()
             break
-        print(edge)
         src = int.from_bytes(edge[:4],sys.byteorder)
         dst = int.from_bytes(edge[4:],sys.byteorder)
         edge_list.append([src, dst])
@@ -73,5 +72,4 @@ with open('degree/new_order.el', 'w') as fout:
 with open(args.output, 'wb') as fout:
     for src, dst in sorted_output:
         fout.write(struct.pack('@II', src,dst))
-        print(struct.pack('@II',src,dst))
 print("Writing done")

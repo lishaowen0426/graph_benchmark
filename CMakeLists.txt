@@ -41,7 +41,10 @@ elseif(USE_PMEM)
     message(FATAL_ERROR "We are not on labos so we can't use pmem")
 endif()
 
+find_library(Pthread pthread)
+
 add_executable(benchmark main.cpp)
+target_link_libraries(graph_lib PUBLIC ${Pthread})
 
 target_link_libraries(benchmark PRIVATE graph_lib)
 
