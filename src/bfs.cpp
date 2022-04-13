@@ -47,7 +47,8 @@ void bfs_push(Graph* graph, uint32_t start){
     size_t iterations = 0;
     sz_t to_process = 0;
     frontier.push_back(start);
-    __atomic_test_and_set(&(visited[start]), __ATOMIC_RELAXED);
+    //__atomic_test_and_set(&(visited[start]), __ATOMIC_RELAXED);
+    visited[start] = true;
 
     combinable<uint64_t> connected;
 
@@ -63,10 +64,14 @@ void bfs_push(Graph* graph, uint32_t start){
                 size_t end = graph->out_edge_offsets[src+1];
                 for(;beg < end; beg++){
                     uint32_t dst = graph->out_edges[beg];
-                    if(!__atomic_test_and_set(&(visited[dst]), __ATOMIC_RELAXED)){
+
+                    //if(!__atomic_test_and_set(&(visited[dst]), __ATOMIC_RELAXED)){
+                    if(__sync_bool_compare_and_swap(&(visited[dst]), false,true )){
                         frontier_next.push_back(dst);
                         local_connected++;
                     } 
+
+
                 }
             }
             connected.local() += local_connected;
