@@ -27,11 +27,11 @@ void atomicAdd(T* ptr, T delta){
 
 }
 
-inline void clflush_line(void* ptr, bool fence = false){
+inline void clflush_line(char* ptr, bool fence = false){
     if(fence)
-        asm volatile ("clflush %0;mfence" : : "m" (*(volatile void*)(ptr)));
+        asm volatile ("clflush %0;mfence" : : "m" (*(volatile char*)(ptr)));
     else
-        asm volatile ("clflush %0" : : "m" (*(volatile void*)(ptr)));
+        asm volatile ("clflush %0" : : "m" (*(volatile char*)(ptr)));
 }
 
 #endif

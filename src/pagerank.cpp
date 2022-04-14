@@ -38,7 +38,7 @@ void pr_hub(Graph* graph, int iteration,  int opt){
             die("How to pagerank?\n");
     }
     rdtscll(stop);
-    printf("PR-%s time %lu ( %fs )\n",((opt==0)?"push":"pull"), stop - start, ((float)(stop - start))/(float)get_cpu_freq());
+    printf("PR-%s time, iteration: %d,  %lu ( %fs )\n",((opt==0)?"push":"pull"),iteration, stop - start, ((float)(stop - start))/(float)get_cpu_freq());
 
 
 }
