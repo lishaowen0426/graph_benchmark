@@ -11,6 +11,7 @@ option(USE_PMEM "Allocate memory on pmem" OFF)
 SET(LABOS FALSE)
 if("$ENV{USER}" STREQUAL "shaowen" )
     set(LABOS TRUE)
+    add_definitions(-DLABOS)
     message(STATUS "on labos")
 endif()
 

@@ -82,8 +82,11 @@ int main( int argc, char** argv){
     assert(perf_data.nr == 1);
     cache_misses_start = perf_data.values[0].value;
     */
-
+#ifdef LABOS
+    if(system("/home/blepers/linux/tools/perf/perf  record -F 997 -e instructions:pp -a  2>&1 &")){}
+#else
     if(system("perf record -F 997 -e instructions:pp -a  2>&1 &")){}
+#endif
     sleep(2);
     //bfs_hub(graph,0,mode);
     pr_hub(graph,iterations,mode);
