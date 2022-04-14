@@ -66,6 +66,7 @@ void bfs_push(Graph* graph, uint32_t start){
                     uint32_t dst = graph->out_edges[beg];
 
                     //if(!__atomic_test_and_set(&(visited[dst]), __ATOMIC_RELAXED)){
+    //                asm volatile ("clflush %0;mfence" : : "m" (*(volatile bool*)(visited+dst)));
                     if(__sync_bool_compare_and_swap(&(visited[dst]), false,true )){
                         frontier_next.push_back(dst);
                         local_connected++;

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "bfs.h"
 #include "pebs.h"
+#include "pagerank.h"
 #include "oneapi/tbb/global_control.h"
 
 
@@ -24,9 +25,10 @@ int main( int argc, char** argv){
     const char* binary;
     bool debug = false;
     int mode;
+    int iterations;
     SYMMETRIC = false;
     THREADS = 0;
-    while((c = getopt(argc, argv, "t:v:f:m:ds"))!= -1){
+    while((c = getopt(argc, argv, "t:v:f:m:i:ds"))!= -1){
         switch(c){
             case 't':
                 THREADS = atoi(optarg);
@@ -46,8 +48,11 @@ int main( int argc, char** argv){
             case 'm':
                 mode = atoi(optarg);
                 break;
+            case 'i':
+                iterations = atoi(optarg);
+                break;
             default:
-                printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -s<is_symmetric>\n");
+                printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -i <iterations> -s<is_symmetric>\n");
                 return 0;
         }
     }
@@ -58,7 +63,7 @@ int main( int argc, char** argv){
         SYMMETRIC = true;
     }
     else if(  NB_NODES == 0){
-        printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -s<is_symmetric>\n");
+        printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -i <iterations> -s<is_symmetric>\n");
         return 0;
     }
 
@@ -80,7 +85,8 @@ int main( int argc, char** argv){
 
     if(system("perf record -F 997 -e instructions:pp -a  2>&1 &")){}
     sleep(2);
-    bfs_hub(graph,0,mode);
+    //bfs_hub(graph,0,mode);
+    pr_hub(graph,iterations,mode);
     if(system("echo pmem | sudo -S killall -INT -w perf")) {};
     /*
     read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));

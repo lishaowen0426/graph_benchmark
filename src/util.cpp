@@ -26,3 +26,5 @@ uint64_t get_cpu_freq(void) {
    fclose(fd);
    return freq;
 }
+
+

@@ -17,4 +17,14 @@ do {                         \
 
 uint64_t get_cpu_freq(void) ;
 
+template <typename T>
+void atomicAdd(T* ptr, T delta){
+    volatile T new_val, old_val;
+    do{
+        old_val = *ptr;
+        new_val = old_val + delta;
+    }while(!__sync_bool_compare_and_swap(ptr, old_val, new_val));
+
+}
+
 #endif
