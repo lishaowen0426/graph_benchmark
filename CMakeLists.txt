@@ -49,5 +49,8 @@ target_link_libraries(graph_lib PUBLIC ${Pthread})
 
 target_link_libraries(benchmark PRIVATE graph_lib)
 
+add_executable(reorder reorder.cpp)
+target_link_libraries(reorder PUBLIC TBB::tbb)
+
 
 

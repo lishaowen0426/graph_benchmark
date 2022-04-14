@@ -19,7 +19,7 @@ Graph* graph;
 int main( int argc, char** argv){
 
 #ifdef PMEM
-    RP_init("graph",30*1024*1024*1024ULL);
+    RP_init("graph",150*1024*1024*1024ULL);
 #endif
     int c;
     const char* binary;

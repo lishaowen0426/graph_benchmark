@@ -34,7 +34,9 @@ with open(args.input, 'r+b') as fin: # read input graph edges
         else:
             edges_by_node[src].append(dst)
 # sort vertices by their degree counts
-ordered = sorted(edges_by_node.items(), key=lambda x: len(x[1]), reverse=False if args.ascending else True)
+#ordered = sorted(edges_by_node.items(), key=lambda x: len(x[1]), reverse=False if args.ascending else True)
+ordered = list(edges_by_node.items())
+ordered.sort( key=lambda x: len(x[1]), reverse=False if args.ascending else True)
 
 # mapping holds new mapping of a vertex
 mapping = {}
