@@ -49,7 +49,6 @@ void bfs_push(Graph* graph, uint32_t start){
     size_t iterations = 0;
     sz_t to_process = 0;
     frontier.push_back(start);
-    //__atomic_test_and_set(&(visited[start]), __ATOMIC_RELAXED);
     visited[start] = 1;
 
 
@@ -67,7 +66,6 @@ void bfs_push(Graph* graph, uint32_t start){
                     uint32_t dst = graph->out_edges[beg];
 
                     //if(!__atomic_test_and_set(&(visited[dst]), __ATOMIC_RELAXED)){
-    //                asm volatile ("clflush %0;mfence" : : "m" (*(volatile bool*)(visited+dst)));
                     if(__sync_bool_compare_and_swap(&(visited[dst]), 0,1 )){
                         frontier_next.push_back(dst);
                     } 

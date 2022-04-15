@@ -83,13 +83,13 @@ int main( int argc, char** argv){
     cache_misses_start = perf_data.values[0].value;
     */
 #ifdef LABOS
-    if(system("/home/blepers/linux/tools/perf/perf  record -F 997 -e instructions:pp -a  2>&1 &")){}
+    if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
 #else
-    if(system("perf record -F 997 -e instructions:pp -a  2>&1 &")){}
+    if(system("perf stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
 #endif
     sleep(2);
-    //bfs_hub(graph,0,mode);
-    pr_hub(graph,iterations,mode);
+    bfs_hub(graph,0,mode);
+    //pr_hub(graph,iterations,mode);
     if(system("echo pmem | sudo -S killall -INT -w perf")) {};
     /*
     read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
