@@ -32,6 +32,7 @@ uint32_t* out_edges;
 uint32_t* mapping;
 uint32_t* ordered;
 bool ascending;
+bool maintain;
 
 
 void  sort_by_degree(const char* input, const char* output){
@@ -92,8 +93,13 @@ void  sort_by_degree(const char* input, const char* output){
                 );
         
         mapping = (uint32_t*)malloc(NB_NODES*sizeof(uint32_t));
+        size_t count = maintain? 1: 0;
         for(size_t i = 0; i < NB_NODES; i++){
-            mapping[ordered[i]] = i;
+            if(maintain && ordered[i] == 0) mapping[0] = 0;
+            else {
+                mapping[ordered[i]] = count;
+                count++;
+            } 
         }
     }
     /*
@@ -137,9 +143,12 @@ int main(int argc, char** argv){
     
     const char* input;
     const char* output;
-    bool debug;
+    bool debug = false;
     int c;
-    while((c = getopt(argc, argv, "i:o:v:ad"))!=-1){
+
+    ascending = false;
+    maintain = false;
+    while((c = getopt(argc, argv, "i:o:v:adm"))!=-1){
         switch(c){
             case 'i':
                 input = optarg;
@@ -156,8 +165,11 @@ int main(int argc, char** argv){
             case 'd':
                 debug = true;
                 break;
+            case 'm':
+                maintain = false;
+                break;
             default:
-                printf("./reorder -i <input> -o <output> -v <nodes> -a<ascending>");
+                printf("./reorder -i <input> -o <output> -v <nodes> -a<ascending> -m<maintain 0>");
                 return 0;
         }
     }
