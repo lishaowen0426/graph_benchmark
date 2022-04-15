@@ -3,6 +3,7 @@
 #include "loader.h"
 #include <unistd.h>
 #include "bfs.h"
+#include "util.h"
 #include "pebs.h"
 #include "pagerank.h"
 #include "oneapi/tbb/global_control.h"
@@ -72,8 +73,11 @@ int main( int argc, char** argv){
     global_control thread_limit(global_control::parameter::max_allowed_parallelism, THREADS);
     printf("Run with: %lu worker threads, %lu nodes, binary: %s\n", global_control::active_value(global_control::parameter::max_allowed_parallelism), NB_NODES, binary);
 
-    
+    uint64_t start, stop;
+    rdtscll(start); 
     graph = create_graph(binary); 
+    rdtscll(stop);
+    printf("Create graph: %fs\n",((float)(stop-start))/(float)(get_cpu_freq()));
     /*
     int perf_fd = perf_count_setup(PERF_TYPE_HARDWARE,PERF_COUNT_HW_CACHE_MISSES,0,-1 );
     struct read_group_format perf_data;
