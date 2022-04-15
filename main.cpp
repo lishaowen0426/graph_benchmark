@@ -87,7 +87,7 @@ int main( int argc, char** argv){
     cache_misses_start = perf_data.values[0].value;
     */
 #ifdef LABOS
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
+    if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads  -a  2>&1 &")){}
 #else
     if(system("perf stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
 #endif
