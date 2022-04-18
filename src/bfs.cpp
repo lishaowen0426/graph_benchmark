@@ -13,7 +13,7 @@ concurrent_vector<uint32_t> frontier_next;
 PROP_TY* visited;
 bool* in_frontier;
 bool* in_frontier_next;
-simple_partitioner r;
+static_partitioner r;
 
 void bfs_hub(Graph* graph, uint32_t source, int opt){
     
@@ -54,7 +54,7 @@ void bfs_push(Graph* graph, uint32_t start){
 
     while( (to_process=frontier.size())!= 0){
         iterations++;
-        auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process, EQUAL_GRAIN(to_process, THREADS) ),
+        auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process ),
         [&](const blocked_range<sz_t>& r){
             uint64_t local_connected = 0;
             for(size_t i = r.begin(); i != r.end(); i++){
@@ -89,7 +89,7 @@ void bfs_pull(Graph* graph, uint32_t start){
     do{
         cont = false;
         iterations++;
-        auto f = [&](){parallel_for(blocked_range<size_t>(0,NB_NODES, EQUAL_GRAIN(NB_NODES, THREADS)),
+        auto f = [&](){parallel_for(blocked_range<size_t>(0,NB_NODES),
                 [&](const blocked_range<size_t>& r){
                     bool local_cont = false;
                     for(size_t i = r.begin(); i != r.end(); i++){
