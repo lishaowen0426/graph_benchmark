@@ -9,7 +9,7 @@ void pinning_observer::on_scheduler_entry(bool worker){
     CPU_SET(id,&mask);
     s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mask);
     if(s != 0){
-        die("set affinity failed\n");
+        handle_error_en(s,"set affinity failed");
     }
 }
 

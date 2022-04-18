@@ -89,7 +89,7 @@ void bfs_pull(Graph* graph, uint32_t start){
     do{
         cont = false;
         iterations++;
-        auto f = [&](){parallel_for(blocked_range<size_t>(0,NB_NODES),
+        auto f = [&](){parallel_for(blocked_range<size_t>(0,NB_NODES, EQUAL_GRAIN(NB_NODES, THREADS)),
                 [&](const blocked_range<size_t>& r){
                     bool local_cont = false;
                     for(size_t i = r.begin(); i != r.end(); i++){
@@ -108,7 +108,7 @@ void bfs_pull(Graph* graph, uint32_t start){
                         }
                     }
                     if(local_cont) cont = local_cont;
-                });};
+                }, r);};
         arena.execute(f);
         memset(in_frontier, false, NB_NODES*sizeof(bool));
         std::swap(in_frontier, in_frontier_next);

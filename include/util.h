@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cstdint>
+#include <errno.h>
 #define die(msg, args...) \
 do {                         \
             fprintf(stderr,"(%s,%d) " msg "\n", __FUNCTION__ , __LINE__, ##args); \
@@ -14,6 +15,9 @@ do {                         \
        asm volatile("rdtsc" : "=a" (__a), "=d" (__d));              \
        (val) = ((unsigned long)__a) | (((unsigned long)__d)<<32);   \
 }
+
+#define handle_error_en(en, msg) \
+               do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
 #define EQUAL_GRAIN(total, par) (total/par)>0? (total/par): 1
 
