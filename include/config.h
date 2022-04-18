@@ -48,7 +48,6 @@ public:
 };
 
 class pinning_observer : public oneapi::tbb::task_scheduler_observer {
-    cpu_set_t mask;
 public:
 
     pinning_observer( oneapi::tbb::task_arena &a )
