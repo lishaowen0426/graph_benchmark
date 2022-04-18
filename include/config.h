@@ -1,9 +1,12 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
+#include <sched.h>
 #include <cstdint>
 #include <cstdlib>
 #include "util.h"
-
+#include "oneapi/tbb/task_arena.h"
+#include "oneapi/tbb/partitioner.h"
+#include "oneapi/tbb/task_scheduler_observer.h"
 #ifdef PMEM
 #include "ralloc.hpp"
 #endif
@@ -44,6 +47,17 @@ public:
     }
 };
 
+class pinning_observer : public oneapi::tbb::task_scheduler_observer {
+    cpu_set_t mask;
+public:
+
+    pinning_observer( oneapi::tbb::task_arena &a )
+        : oneapi::tbb::task_scheduler_observer(a) {
+        observe(true); // activate the observer
+    }
+    void on_scheduler_entry( bool worker ) override;
+    void on_scheduler_exit( bool worker ) override ;
+};
 
 
 /*
@@ -56,5 +70,6 @@ extern uint64_t NB_NODES;
 extern uint64_t NB_EDGES;
 extern Graph* graph;
 extern bool SYMMETRIC;
+extern oneapi::tbb::task_arena arena;
 #endif
 

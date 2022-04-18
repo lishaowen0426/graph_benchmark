@@ -6,7 +6,8 @@
 #include "util.h"
 #include "pebs.h"
 #include "pagerank.h"
-#include "oneapi/tbb/global_control.h"
+#include "oneapi/tbb.h"
+#include <vector>
 
 
 
@@ -16,6 +17,7 @@ int THREADS;
 size_t NB_NODES;
 bool SYMMETRIC;
 Graph* graph;
+task_arena arena;
 
 int main( int argc, char** argv){
 
@@ -69,9 +71,15 @@ int main( int argc, char** argv){
     }
 
     if(THREADS == 0) THREADS = 1;
+    {
+        //initialize arena
+        std::vector<oneapi::tbb::numa_node_id> numa_nodes = oneapi::tbb::info::numa_nodes();
+        arena.initialize(task_arena::constraints(numa_nodes[0], THREADS));
+    }
+    pinning_observer obs(arena); //bind threads
 
-    global_control thread_limit(global_control::parameter::max_allowed_parallelism, THREADS);
-    printf("Run with: %lu worker threads, %lu nodes, binary: %s\n", global_control::active_value(global_control::parameter::max_allowed_parallelism), NB_NODES, binary);
+    printf("Run with: %u worker threads, %lu nodes, binary: %s\n", arena.max_concurrency(), NB_NODES, binary);
+
 
     uint64_t start, stop;
     rdtscll(start); 
@@ -88,6 +96,7 @@ int main( int argc, char** argv){
     */
 #ifdef LABOS
     if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads  -a  2>&1 &")){}
+    //if(system("/home/blepers/linux/tools/perf/perf  stat -e MEM_LOAD_RETIRED.LOCAL_PMM,MEM_INST_RETIRED.SPLIT_LOADS,MEM_INST_RETIRED.SPLIT_STORES,mem_load_l3_hit_retired.xsnp_hitm   -a  2>&1 &")){}
 #else
     if(system("perf stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
 #endif

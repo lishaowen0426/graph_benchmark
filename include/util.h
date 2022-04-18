@@ -15,6 +15,8 @@ do {                         \
        (val) = ((unsigned long)__a) | (((unsigned long)__d)<<32);   \
 }
 
+#define EQUAL_GRAIN(total, par) (total/par)>0? (total/par): 1
+
 uint64_t get_cpu_freq(void) ;
 
 template <typename T>

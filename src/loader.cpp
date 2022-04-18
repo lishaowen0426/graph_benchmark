@@ -118,15 +118,15 @@ void count_degree_0_sequential(Graph* graph, edge_t* edges){
 
 
 void count_degree_1_atomic(Graph* graph, edge_t* edges){
-    parallel_for(blocked_range<size_t>(0, NB_EDGES),
+    auto f = [&](){parallel_for(blocked_range<size_t>(0, NB_EDGES),
         [=](const blocked_range<size_t>& r){
             for(size_t i = r.begin(); i != r.end(); i++){
                 __sync_fetch_and_add(&(graph->out_edge_offsets[edges[i].src]),1);
                 if(graph->symmetric)
                     __sync_fetch_and_add(&(graph->in_edge_offsets[edges[i].dst]),1);
             }
-        }
-            );
+        });};
+    arena.execute(f);
 }
 
 
@@ -141,7 +141,7 @@ void create_edges(Graph* graph, edge_t* edges){
         memset((void*)in_offsets,0, NB_NODES*sizeof(uint32_t));
     }
 
-    parallel_for(blocked_range<size_t>(0,NB_EDGES),
+    auto f =[&](){parallel_for(blocked_range<size_t>(0,NB_EDGES),
         [=](const blocked_range<size_t>& r){
             for(size_t i = r.begin(); i != r.end(); i++){
                 uint32_t src = edges[i].src;
@@ -155,7 +155,7 @@ void create_edges(Graph* graph, edge_t* edges){
 
                 }
             }
-        }
-            );
+        });};
+    arena.execute(f);
 }
 

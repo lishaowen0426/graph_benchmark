@@ -13,7 +13,7 @@ concurrent_vector<uint32_t> frontier_next;
 PROP_TY* visited;
 bool* in_frontier;
 bool* in_frontier_next;
-
+simple_partitioner r;
 
 void bfs_hub(Graph* graph, uint32_t source, int opt){
     
@@ -54,8 +54,7 @@ void bfs_push(Graph* graph, uint32_t start){
 
     while( (to_process=frontier.size())!= 0){
         iterations++;
-        //printf("Iterations: %lu, to_process: %lu\n",iterations, to_process);
-        parallel_for(blocked_range<sz_t>(0, to_process),
+        auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process, EQUAL_GRAIN(to_process, THREADS) ),
         [&](const blocked_range<sz_t>& r){
             uint64_t local_connected = 0;
             for(size_t i = r.begin(); i != r.end(); i++){
@@ -73,7 +72,8 @@ void bfs_push(Graph* graph, uint32_t start){
 
                 }
             }
-        });
+        },r );};
+        arena.execute(f);
         frontier.clear();
         frontier.swap(frontier_next);
     }
@@ -89,7 +89,7 @@ void bfs_pull(Graph* graph, uint32_t start){
     do{
         cont = false;
         iterations++;
-        parallel_for(blocked_range<size_t>(0,NB_NODES),
+        auto f = [&](){parallel_for(blocked_range<size_t>(0,NB_NODES),
                 [&](const blocked_range<size_t>& r){
                     bool local_cont = false;
                     for(size_t i = r.begin(); i != r.end(); i++){
@@ -108,7 +108,8 @@ void bfs_pull(Graph* graph, uint32_t start){
                         }
                     }
                     if(local_cont) cont = local_cont;
-                });
+                });};
+        arena.execute(f);
         memset(in_frontier, false, NB_NODES*sizeof(bool));
         std::swap(in_frontier, in_frontier_next);
     }while(cont);
@@ -130,7 +131,7 @@ void bfs_pushpull(Graph* graph, uint32_t start){
             }else{
                 edges_in_frontier.clear();
             }
-            parallel_for(blocked_range<sz_t>(0, to_process),
+            auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process),
             [&](const blocked_range<sz_t>& r){
                 uint64_t local_explored = 0;
                 uint64_t local_edges_in_frontier = 0;
@@ -149,7 +150,8 @@ void bfs_pushpull(Graph* graph, uint32_t start){
                 }
                 edges_in_frontier.local() += local_edges_in_frontier;
                 __atomic_add_fetch(&explored, local_explored, __ATOMIC_RELAXED);
-            });
+            });};
+            arena.execute(f);
             frontier.clear();
             frontier.swap(frontier_next);
         }
@@ -159,16 +161,16 @@ void bfs_pushpull(Graph* graph, uint32_t start){
 PULL:
         in_frontier = (bool*)malloc(NB_NODES*sizeof(bool));
         in_frontier_next = (bool*)malloc(NB_NODES*sizeof(bool));
-        parallel_for(blocked_range<sz_t>(0, frontier.size()),
+        auto f = [&](){parallel_for(blocked_range<sz_t>(0, frontier.size()),
             [&](const blocked_range<sz_t>& r){
                 for(sz_t i = r.begin(); i != r.end(); i++) in_frontier[frontier[i]] = true;
-            });
-
+            });};
+        arena.execute(f);
 
         bool cont;
         do{
             cont = false;
-            parallel_for(blocked_range<size_t>(0,NB_NODES),
+            auto f =  [&](){parallel_for(blocked_range<size_t>(0,NB_NODES),
                     [&](const blocked_range<size_t>& r){
                         bool local_cont = false;
                         uint64_t local_connected = 0;
@@ -188,7 +190,8 @@ PULL:
                             }
                         }
                         if(local_cont) cont = local_cont;
-                    });
+                    });};
+            arena.execute(f);
             memset(in_frontier, false, NB_NODES*sizeof(bool));
             std::swap(in_frontier, in_frontier_next);
         }while(cont);
