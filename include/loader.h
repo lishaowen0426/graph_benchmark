@@ -7,6 +7,7 @@
 
 Graph* create_graph(const char* binary_file);
 
+void write_to_file(Graph* graph, const char* output);
 
 void count_degree(Graph* graph, edge_t* edges, int opt);
 

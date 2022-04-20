@@ -8,6 +8,8 @@
 #include "loader.h"
 #include "oneapi/tbb.h"
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 using namespace oneapi::tbb;
 
@@ -157,5 +159,27 @@ void create_edges(Graph* graph, edge_t* edges){
             }
         });};
     arena.execute(f);
+}
+
+
+void write_to_file(Graph* graph, const char* output){
+    const char* title = "AdjacencyGraph";
+    std::ofstream fout(output);
+    if(!fout){
+        std::cout<<"open output file failed"<<std::endl;
+        exit(1);
+    }
+
+    fout << title<<std::endl;
+    fout<<graph->nb_nodes<<"\n";
+    fout<<graph->nb_edges<<"\n";
+    for(size_t i = 0; i < graph->nb_nodes; i++){
+        fout<<(graph->out_edge_offsets)[i]<<"\n";
+    }
+    for(size_t i = 0; i < graph->nb_edges; i++){
+        fout<<(graph->out_edges)[i]<<"\n";
+    }
+    
+    fout.close();
 }
 

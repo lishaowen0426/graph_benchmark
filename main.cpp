@@ -31,7 +31,8 @@ int main( int argc, char** argv){
     int iterations;
     SYMMETRIC = false;
     THREADS = 0;
-    while((c = getopt(argc, argv, "t:v:f:m:i:ds"))!= -1){
+    const char* output = nullptr;
+    while((c = getopt(argc, argv, "t:v:f:m:i:o:ds"))!= -1){
         switch(c){
             case 't':
                 THREADS = atoi(optarg);
@@ -53,6 +54,9 @@ int main( int argc, char** argv){
                 break;
             case 'i':
                 iterations = atoi(optarg);
+                break;
+            case 'o':
+                output = optarg;
                 break;
             default:
                 printf("./benchmark -t <threads> -v <nb_nodes> -m <bfs_mode> -f <binary> -i <iterations> -s<is_symmetric>\n");
@@ -86,6 +90,13 @@ int main( int argc, char** argv){
     graph = create_graph(binary); 
     rdtscll(stop);
     printf("Create graph: %fs\n",((float)(stop-start))/(float)(get_cpu_freq()));
+    if(output != nullptr){
+        rdtscll(start);
+        write_to_file(graph,output);
+        rdtscll(stop);
+        printf("output graph: %fs\n",((float)(stop-start))/(float)(get_cpu_freq()));
+        return 0;
+    }
     /*
     int perf_fd = perf_count_setup(PERF_TYPE_HARDWARE,PERF_COUNT_HW_CACHE_MISSES,0,-1 );
     struct read_group_format perf_data;
