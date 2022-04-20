@@ -41,10 +41,11 @@ public:
 };
 
 class pinning_observer : public oneapi::tbb::task_scheduler_observer {
+    int base;
 public:
 
-    pinning_observer( oneapi::tbb::task_arena &a )
-        : oneapi::tbb::task_scheduler_observer(a) {
+    pinning_observer( oneapi::tbb::task_arena &a, int b )
+        : oneapi::tbb::task_scheduler_observer(a), base(b) {
         observe(true); // activate the observer
     }
     void on_scheduler_entry( bool worker ) override;

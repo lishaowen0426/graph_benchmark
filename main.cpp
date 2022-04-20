@@ -80,7 +80,7 @@ int main( int argc, char** argv){
         std::vector<oneapi::tbb::numa_node_id> numa_nodes = oneapi::tbb::info::numa_nodes();
         arena.initialize(task_arena::constraints(numa_nodes[0], THREADS));
     }
-    pinning_observer obs(arena); //bind threads
+    pinning_observer obs(arena,0); //bind threads
 
     printf("Run with: %u worker threads, %lu nodes, binary: %s\n", arena.max_concurrency(), NB_NODES, binary);
 

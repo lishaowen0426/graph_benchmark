@@ -5,6 +5,7 @@
 void pinning_observer::on_scheduler_entry(bool worker){
     int s;
     int id = oneapi::tbb::this_task_arena::current_thread_index()%THREADS;
+    id = base + id;
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(id,&mask);
