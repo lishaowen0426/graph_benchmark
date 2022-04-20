@@ -23,7 +23,7 @@ public:
 
 
 template<size_t P>
-Entry<P>* create_random(size_t buffer_sz, size_t& len){
+Entry<P>* create_random(size_t& buffer_sz, size_t& len){
     typedef Entry<P> Entry_t;
     
     size_t sz = sizeof(Entry_t);
@@ -51,10 +51,10 @@ Entry<P>* create_random(size_t buffer_sz, size_t& len){
     return buffer;
 }
 
-void cas_chase_fail(void* buffer, size_t len){
+void cas_chase_fail(void* buffer, size_t count){
 
     void* p = buffer;
-    while(len-- >0){
+    while(count-- >0){
         p = *((void**)(p)) ;
     }
 
