@@ -1,5 +1,8 @@
 #include "iostream"
 #include "pointer_chasing.h"
+#ifdef PMEM
+#include "ralloc.hpp"
+#endif
 
 
 #define PAD_SIZE 8
@@ -8,7 +11,7 @@
 int main(int argc, char** argv){
 
 #ifdef PMEM
-    RP_init("graph",50*1024*1024*1024ULL);
+    RP_init("chasing",50*1024*1024*1024ULL);
 #endif
 
     size_t len;
