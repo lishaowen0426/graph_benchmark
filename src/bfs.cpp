@@ -19,6 +19,9 @@ void bfs_hub(Graph* graph, uint32_t source, int opt){
     
     visited = (PROP_TY*)prop_malloc(graph->nb_nodes*sizeof(PROP_TY));
     memset(visited,0, graph->nb_nodes*sizeof(PROP_TY));
+
+    frontier.reserve(NB_NODES);
+    frontier_next.reserve(NB_NODES);
         
     uint64_t start, stop;
     rdtscll(start);

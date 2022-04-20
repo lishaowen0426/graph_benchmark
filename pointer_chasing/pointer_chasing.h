@@ -23,7 +23,7 @@ public:
 
 
 template<size_t P>
-Entry<P>* create_random(size_t& buffer_sz, size_t& len){
+Entry<P>* create_random(size_t& buffer_sz, size_t& len, bool shuffle){
     typedef Entry<P> Entry_t;
     
     size_t sz = sizeof(Entry_t);
@@ -39,8 +39,10 @@ Entry<P>* create_random(size_t& buffer_sz, size_t& len){
 #ifdef RANDOM
     std::srand(time(0));
 #endif
-    std::random_shuffle(indices, indices+len);
-
+    if(shuffle){
+        printf("shuffle!\n");
+        std::random_shuffle(indices, indices+len);
+    }
 
     for(size_t i = 1; i < len; i++){
         buffer[indices[i-1]].next = (void*)(&buffer[indices[i]]);
@@ -51,11 +53,37 @@ Entry<P>* create_random(size_t& buffer_sz, size_t& len){
     return buffer;
 }
 
-void cas_chase_fail(void* buffer, size_t count){
+void read_chase(void* buffer, size_t count){
 
     void* p = buffer;
     while(count-- >0){
         p = *((void**)(p)) ;
+    }
+
+}
+
+
+void cas_chase_fail(void* buffer, size_t count){
+   
+    void* p = buffer;
+    void* oldV = (void*)0x0;
+    void* newV = (void*)0x1;
+    while(count-- > 0){
+        p = __sync_val_compare_and_swap((void**)p, oldV, newV);
+    }
+}
+
+
+void cas_chase_success(void* buffer, size_t len, size_t count, size_t sz ){
+   
+}
+
+
+void cas_hub(void* buffer,size_t len,  size_t count, bool success, size_t sz){
+    if(success){
+        cas_chase_success(buffer,len,count,sz);
+    }else{
+        cas_chase_fail(buffer,count);
     }
 
 }

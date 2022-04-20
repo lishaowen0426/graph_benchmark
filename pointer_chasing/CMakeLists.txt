@@ -8,6 +8,7 @@ if(RANDOM_SEED)
     add_definitions(-DRANDOM)
 endif()
 
+
 target_include_directories(chasing PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 
