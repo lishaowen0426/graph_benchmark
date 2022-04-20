@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <errno.h>
 
+#ifdef PMEM
+#include "ralloc.hpp"
+#endif
 
 
 #ifdef PMEM

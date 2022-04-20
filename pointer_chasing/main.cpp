@@ -1,8 +1,5 @@
 #include "iostream"
 #include "pointer_chasing.h"
-#ifdef PMEM
-#include "ralloc.hpp"
-#endif
 
 
 #define PAD_SIZE 8
