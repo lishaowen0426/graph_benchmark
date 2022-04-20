@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgraph_lib.a  CMakeFiles/graph_lib.dir/src/bfs.cpp.o CMakeFiles/graph_lib.dir/src/config.cpp.o CMakeFiles/graph_lib.dir/src/loader.cpp.o CMakeFiles/graph_lib.dir/src/pagerank.cpp.o CMakeFiles/graph_lib.dir/src/pebs.cpp.o CMakeFiles/graph_lib.dir/src/util.cpp.o
+/usr/bin/ranlib libgraph_lib.a

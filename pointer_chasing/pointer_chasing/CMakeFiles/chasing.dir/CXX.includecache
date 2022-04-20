@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/util.h
+stdio.h
+-
+assert.h
+-
+cstdint
+-
+errno.h
+-
+
+/home/lsw/graph_benchmark/pointer_chasing/main.cpp
+iostream
+/home/lsw/graph_benchmark/pointer_chasing/iostream
+pointer_chasing.h
+/home/lsw/graph_benchmark/pointer_chasing/pointer_chasing.h
+
+/home/lsw/graph_benchmark/pointer_chasing/pointer_chasing.h
+algorithm
+-
+util.h
+/home/lsw/graph_benchmark/pointer_chasing/util.h
+
+/home/lsw/graph_benchmark/src/util.cpp
+util.h
+/home/lsw/graph_benchmark/src/util.h
+stdio.h
+-
+

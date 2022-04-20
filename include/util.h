@@ -4,6 +4,17 @@
 #include <assert.h>
 #include <cstdint>
 #include <errno.h>
+
+
+
+#ifdef PMEM
+#define __malloc RP_malloc
+#define __free RP_free
+#else
+#define __malloc malloc
+#define __free free
+#endif
+
 #define die(msg, args...) \
 do {                         \
             fprintf(stderr,"(%s,%d) " msg "\n", __FUNCTION__ , __LINE__, ##args); \
@@ -23,6 +34,8 @@ do {                         \
 
 uint64_t get_cpu_freq(void) ;
 
+#define CYCLES_TO_SEC(start, stop, freq) ((float)(stop-start))/((float)freq)
+
 template <typename T>
 void atomicAdd(T* ptr, T delta){
     volatile T new_val, old_val;
@@ -39,5 +52,8 @@ inline void clflush_line(char* ptr, bool fence = false){
     else
         asm volatile ("clflush %0" : : "m" (*(volatile char*)(ptr)));
 }
+
+    
+
 
 #endif

@@ -53,4 +53,4 @@ add_executable(reorder reorder.cpp)
 target_link_libraries(reorder PUBLIC TBB::tbb)
 
 
-
+add_subdirectory(pointer_chasing)

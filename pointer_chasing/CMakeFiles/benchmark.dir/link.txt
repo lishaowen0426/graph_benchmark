@@ -1,0 +1,1 @@
+/usr/bin/c++   -o3 -ggdb   CMakeFiles/benchmark.dir/main.cpp.o  -o benchmark  -Wl,-rpath,/home/lsw/oneTBB/install/lib libgraph_lib.a /home/lsw/oneTBB/install/lib/libtbb.so.12.7 /usr/lib/x86_64-linux-gnu/libpthread.so 

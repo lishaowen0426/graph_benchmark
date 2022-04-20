@@ -1,0 +1,1 @@
+/usr/bin/c++   -o3 -ggdb   CMakeFiles/reorder.dir/reorder.cpp.o  -o reorder  -Wl,-rpath,/home/lsw/oneTBB/install/lib /home/lsw/oneTBB/install/lib/libtbb.so.12.7 
