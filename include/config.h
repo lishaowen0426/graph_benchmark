@@ -67,6 +67,8 @@ class thread_buffer{
         void transfer( thread_buffer& dst);
         size_t size(){ return next;}
 
+        uint32_t& operator[](size_t i){ return buffer[i];}
+
 };
 
 

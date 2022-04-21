@@ -5,6 +5,7 @@
 #include "oneapi/tbb.h"
 #include "oneapi/tbb/combinable.h"
 #include "oneapi/tbb/scalable_allocator.h"
+#include "unistd.h"
 
 using namespace oneapi::tbb;
 
@@ -55,14 +56,19 @@ void bfs_push(Graph* graph, uint32_t start){
     using sz_t =decltype(frontier)::size_type;
     size_t iterations = 0;
     sz_t to_process = 0;
-    frontier.push_back(start);
     visited[start] = 1;
+    
+    thread_buffer frontier;
+    frontier.init(NB_NODES);
+    frontier.push(start);
+    thread_buffer* buffers = (thread_buffer*)malloc(THREADS*sizeof(thread_buffer));
+    for(size_t i = 0; i < THREADS; i++) buffers[i].init(NB_NODES);
 
     while( (to_process=frontier.size())!= 0){
         iterations++;
         auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process ),
         [&](const blocked_range<sz_t>& r){
-            uint64_t local_connected = 0;
+            thread_buffer& local_buffer = buffers[gettid()%THREADS]; 
             for(size_t i = r.begin(); i != r.end(); i++){
                 uint32_t src = frontier[i];
                 size_t beg = graph->out_edge_offsets[src];
@@ -72,7 +78,7 @@ void bfs_push(Graph* graph, uint32_t start){
 
                     if(visited[dst] == 0){
                         if(__sync_bool_compare_and_swap(&(visited[dst]), 0,1 )){
-                            frontier_next.push_back(dst);
+                            local_buffer.push(dst);
                         } 
                     }
 
@@ -81,7 +87,7 @@ void bfs_push(Graph* graph, uint32_t start){
         },r );};
         arena.execute(f);
         frontier.clear();
-        frontier.swap(frontier_next);
+        for(size_t i = 0; i < THREADS; i++) buffers[i].transfer(frontier);
     }
     size_t v =0;
     for(size_t i = 0; i < NB_NODES; i++) v += visited[i];
