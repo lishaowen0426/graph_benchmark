@@ -115,7 +115,7 @@ int main( int argc, char** argv){
     if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM,OCR.DEMAND_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE,OCR.ALL_PF_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE   -a  2>&1 &")){}
 #endif
 #else
-    if(system("perf stat -e LLC-load-misses,LLC-store-misses,mem_inst_retired.lock_loads,lock_cycles.cache_lock_duration  -a  2>&1 &")){}
+    if(system("perf record -e cycles:pp -F 997  -a  2>&1 &")){}
 #endif
     sleep(2);
     bfs_hub(graph,0,mode);

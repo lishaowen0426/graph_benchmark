@@ -53,6 +53,23 @@ public:
 };
 
 
+class thread_buffer{
+    public:
+        uint32_t* buffer;
+        size_t capacity;
+        size_t next;
+    
+
+        thread_buffer():capacity(0),next(0),buffer(nullptr){}
+        void init(size_t c);
+        void clear() {next = 0;}
+        void push(uint32_t id);
+        void transfer( thread_buffer& dst);
+        size_t size(){ return next;}
+
+};
+
+
 /*
  * global variables
  *

@@ -17,6 +17,8 @@ bool* in_frontier;
 bool* in_frontier_next;
 static_partitioner r;
 
+
+
 void bfs_hub(Graph* graph, uint32_t source, int opt){
     
     visited = (PROP_TY*)prop_malloc(graph->nb_nodes*sizeof(PROP_TY));
@@ -81,9 +83,9 @@ void bfs_push(Graph* graph, uint32_t start){
         frontier.clear();
         frontier.swap(frontier_next);
     }
-    size_t v = 0;
-    for(size_t i =0; i < NB_NODES;i++) v += visited[i];
-    printf("visisted: %lu\n",v);
+    size_t v =0;
+    for(size_t i = 0; i < NB_NODES; i++) v += visited[i];
+    printf("visited: %lu\n",v);
 }
 void bfs_pull(Graph* graph, uint32_t start){
     in_frontier = (bool*)malloc(NB_NODES*sizeof(bool));

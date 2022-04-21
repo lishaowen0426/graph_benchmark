@@ -1,6 +1,7 @@
 #include "config.h"
 #include <pthread.h>
 #include "util.h"
+#include <string.h>
 
 void pinning_observer::on_scheduler_entry(bool worker){
     int s;
@@ -19,5 +20,30 @@ void pinning_observer::on_scheduler_entry(bool worker){
 
 void pinning_observer::on_scheduler_exit(bool worker){
 
+
+}
+
+
+void thread_buffer::init(size_t c){
+    next = 0;
+    
+    buffer = (uint32_t*)malloc(c * sizeof(uint32_t));
+    capacity = c;
+}
+
+
+
+void thread_buffer::push(uint32_t id){
+    
+    buffer[next] = id;
+    next++;
+}
+
+void thread_buffer::transfer( thread_buffer& dst){
+    if(next == 0) return;
+    size_t dst_id = __atomic_fetch_add(&(dst.next),this->next, __ATOMIC_RELAXED);
+    memcpy(dst.buffer+dst_id, this->buffer, next*sizeof(uint32_t));
+
+    next = 0;
 
 }
