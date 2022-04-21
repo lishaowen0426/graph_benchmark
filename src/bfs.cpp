@@ -4,12 +4,14 @@
 #include <string.h>
 #include "oneapi/tbb.h"
 #include "oneapi/tbb/combinable.h"
+#include "oneapi/tbb/scalable_allocator.h"
+
 using namespace oneapi::tbb;
 
 typedef uint8_t PROP_TY;
 
-concurrent_vector<uint32_t> frontier;
-concurrent_vector<uint32_t> frontier_next;
+concurrent_vector<uint32_t,scalable_allocator<uint32_t>> frontier;
+concurrent_vector<uint32_t, scalable_allocator<uint32_t>> frontier_next;
 PROP_TY* visited;
 bool* in_frontier;
 bool* in_frontier_next;
@@ -53,7 +55,6 @@ void bfs_push(Graph* graph, uint32_t start){
     sz_t to_process = 0;
     frontier.push_back(start);
     visited[start] = 1;
-
 
     while( (to_process=frontier.size())!= 0){
         iterations++;

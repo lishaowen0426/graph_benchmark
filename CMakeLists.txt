@@ -31,6 +31,7 @@ FILE(GLOB GRAPH_LIB_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_library(graph_lib STATIC ${GRAPH_LIB_SRCS})
 target_include_directories(graph_lib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(graph_lib PUBLIC TBB::tbb)
+target_link_libraries(graph_lib PUBLIC TBB::tbbmalloc)
 
 if(USE_PMEM AND LABOS)
     message(STATUS "Allocate memory on pmem")
