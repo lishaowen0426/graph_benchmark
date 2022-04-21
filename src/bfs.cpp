@@ -67,11 +67,11 @@ void bfs_push(Graph* graph, uint32_t start){
                 for(;beg < end; beg++){
                     uint32_t dst = graph->out_edges[beg];
 
-                    //if(!__atomic_test_and_set(&(visited[dst]), __ATOMIC_RELAXED)){
-                    if(__sync_bool_compare_and_swap(&(visited[dst]), 0,1 )){
-                        frontier_next.push_back(dst);
-                    } 
-
+                    if(visited[dst] == 0){
+                        if(__sync_bool_compare_and_swap(&(visited[dst]), 0,1 )){
+                            frontier_next.push_back(dst);
+                        } 
+                    }
 
                 }
             }
@@ -80,6 +80,9 @@ void bfs_push(Graph* graph, uint32_t start){
         frontier.clear();
         frontier.swap(frontier_next);
     }
+    size_t v = 0;
+    for(size_t i =0; i < NB_NODES;i++) v += visited[i];
+    printf("visisted: %lu\n",v);
 }
 void bfs_pull(Graph* graph, uint32_t start){
     in_frontier = (bool*)malloc(NB_NODES*sizeof(bool));
