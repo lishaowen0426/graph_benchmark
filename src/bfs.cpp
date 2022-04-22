@@ -16,7 +16,7 @@ concurrent_vector<uint32_t, scalable_allocator<uint32_t>> frontier_next;
 PROP_TY* visited;
 bool* in_frontier;
 bool* in_frontier_next;
-static_partitioner r;
+//static_partitioner r;
 
 
 
@@ -69,7 +69,9 @@ void bfs_push(Graph* graph, uint32_t start){
         auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process ),
         [&](const blocked_range<sz_t>& r){
             thread_buffer& local_buffer = buffers[gettid()%THREADS]; 
-            for(size_t i = r.begin(); i != r.end(); i++){
+            register size_t i = r.begin();
+            const size_t stop = r.end(); 
+            for(; i <stop; i++){
                 uint32_t src = frontier[i];
                 size_t beg = graph->out_edge_offsets[src];
                 size_t end = graph->out_edge_offsets[src+1];
@@ -84,7 +86,7 @@ void bfs_push(Graph* graph, uint32_t start){
 
                 }
             }
-        },r );};
+        } );};
         arena.execute(f);
         frontier.clear();
         for(size_t i = 0; i < THREADS; i++) buffers[i].transfer(frontier);
@@ -123,7 +125,7 @@ void bfs_pull(Graph* graph, uint32_t start){
                         }
                     }
                     if(local_cont) cont = local_cont;
-                }, r);};
+                });};
         arena.execute(f);
         memset(in_frontier, false, NB_NODES*sizeof(bool));
         std::swap(in_frontier, in_frontier_next);
