@@ -64,6 +64,9 @@ void bfs_push(Graph* graph, uint32_t start){
     thread_buffer* buffers = (thread_buffer*)malloc(THREADS*sizeof(thread_buffer));
     for(size_t i = 0; i < THREADS; i++) buffers[i].init(NB_NODES);
 
+    uint32_t* const out_edges = graph->out_edges;
+    size_t* const out_edge_offsets = graph->out_edge_offsets;
+
     while( (to_process=frontier.size())!= 0){
         iterations++;
         auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process ),
@@ -73,10 +76,10 @@ void bfs_push(Graph* graph, uint32_t start){
             const size_t stop = r.end(); 
             for(; i <stop; i++){
                 uint32_t src = frontier[i];
-                size_t beg = graph->out_edge_offsets[src];
-                size_t end = graph->out_edge_offsets[src+1];
+                register size_t beg = out_edge_offsets[src];
+                register const size_t end = out_edge_offsets[src+1];
                 for(;beg < end; beg++){
-                    uint32_t dst = graph->out_edges[beg];
+                    uint32_t dst = out_edges[beg];
 
                     if(visited[dst] == 0){
                         if(__sync_bool_compare_and_swap(&(visited[dst]), 0,1 )){
