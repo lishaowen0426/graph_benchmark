@@ -6,6 +6,7 @@
 #include "oneapi/tbb/combinable.h"
 #include "oneapi/tbb/scalable_allocator.h"
 #include "unistd.h"
+#include "pebs.h"
 
 using namespace oneapi::tbb;
 
@@ -24,10 +25,14 @@ void bfs_hub(Graph* graph, uint32_t source, int opt){
     
     visited = (PROP_TY*)prop_malloc(graph->nb_nodes*sizeof(PROP_TY));
     memset(visited,0, graph->nb_nodes*sizeof(PROP_TY));
+    printf("visited start: %p\n", visited);
+    printf("visited end: %p\n", visited+NB_NODES);
 
     frontier.reserve(NB_NODES);
     frontier_next.reserve(NB_NODES);
         
+    pthread_t t;
+    //launch_cache_collect(&t, THREADS+1, nullptr);
     uint64_t start, stop;
     rdtscll(start);
     switch(opt){
@@ -44,6 +49,7 @@ void bfs_hub(Graph* graph, uint32_t source, int opt){
             die("How do you want to bfs?\n");
     }
     rdtscll(stop);
+    //terminate_cache_collect(&t);
     printf("BFS-%s time %lu ( %fs )\n",((opt==0)?"push":((opt==1)?"pull":"push-pull")), stop - start, ((float)(stop - start))/(float)get_cpu_freq());
     //prop_free(visited);
     
@@ -66,6 +72,10 @@ void bfs_push(Graph* graph, uint32_t start){
 
     uint32_t* const out_edges = graph->out_edges;
     size_t* const out_edge_offsets = graph->out_edge_offsets;
+    printf("out_edges start: %p\n", out_edges);
+    printf("out_edges end: %p\n", out_edges+NB_EDGES);
+    printf("out_edge_offsets start: %p\n", out_edge_offsets);
+    printf("out_edge_offsets end: %p\n", out_edge_offsets+NB_NODES);
 
     while( (to_process=frontier.size())!= 0){
         iterations++;

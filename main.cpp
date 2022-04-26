@@ -18,6 +18,7 @@ size_t NB_NODES;
 bool SYMMETRIC;
 Graph* graph;
 task_arena arena;
+bool should_terminate;
 
 int main( int argc, char** argv){
 
@@ -64,7 +65,7 @@ int main( int argc, char** argv){
         }
     }
     if(debug){
-        THREADS = 8;
+        THREADS = 4;
         NB_NODES = 65536;
         binary = "/home/lsw/graph_data/equal_rmat_binary_32";
         SYMMETRIC = true;
@@ -97,36 +98,27 @@ int main( int argc, char** argv){
         printf("output graph: %fs\n",((float)(stop-start))/(float)(get_cpu_freq()));
         return 0;
     }
-    /*
-    int perf_fd = perf_count_setup(PERF_TYPE_HARDWARE,PERF_COUNT_HW_CACHE_MISSES,0,-1 );
-    struct read_group_format perf_data;
-    uint64_t cache_misses_start, cache_misses_end;
-    read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
-    assert(perf_data.nr == 1);
-    cache_misses_start = perf_data.values[0].value;
-    */
+
+
 #ifdef LABOS
-    //if(system("/home/blepers/linux/tools/perf/perf  record -e cycles:pp -F 9997  -a  2>&1 &")){}
-#ifdef PMEM
-    printf("PMEM\n");
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_RETIRED.LOCAL_PMM,OCR.ALL_PF_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE,OCR.DEMAND_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE  -a  2>&1 &")){}
+    if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM  -a  2>&1 &")){}
+//#ifdef PMEM
+//    printf("PMEM\n");
+//    if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_RETIRED.LOCAL_PMM,OCR.ALL_PF_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE,OCR.DEMAND_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE  -a  2>&1 &")){}
+//#else
+//    printf("DRAM\n");
+//    if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM,OCR.DEMAND_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE,OCR.ALL_PF_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE   -a  2>&1 &")){}
+//#endif
 #else
-    printf("DRAM\n");
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM,OCR.DEMAND_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE,OCR.ALL_PF_RFO.L3_MISS_LOCAL_DRAM.SNOOP_NONE   -a  2>&1 &")){}
+    if(system("perf stat -e LLC-load-misses,LLC-store-misses,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM  -a  2>&1 &")){}
 #endif
-#else
-    if(system("perf record -e cycles:pp -F 997  -a  2>&1 &")){}
-#endif
+    //cache_event_setup();
     sleep(2);
+    
     bfs_hub(graph,0,mode);
+
     //pr_hub(graph,iterations,mode);
     if(system("echo pmem | sudo -S killall -INT -w perf")) {};
-    /*
-    read(perf_fd, (void*)&perf_data, sizeof(struct read_group_format));
-    assert(perf_data.nr == 1);
-    cache_misses_end = perf_data.values[0].value;
-    printf("cache misses: %lu\n", cache_misses_end - cache_misses_start);
-    */
 #ifdef PMEM
     RP_close();
 #endif

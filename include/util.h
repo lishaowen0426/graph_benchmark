@@ -56,6 +56,9 @@ inline void clflush_line(char* ptr, bool fence = false){
         asm volatile ("clflush %0" : : "m" (*(volatile char*)(ptr)));
 }
 
+
+
+
     
 
 
