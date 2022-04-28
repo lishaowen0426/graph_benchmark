@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
 #ifdef PMEM
 #include "libpmem.h"
 #endif
@@ -92,7 +93,7 @@ inline uint64_t find_start(thread_info_t* infos, int threads){
 inline uint64_t find_stop(thread_info_t* infos, int threads){
     uint64_t max = 0x0;
     for(int i = 0; i < threads; i++){
-        if(infos[i].stop_cycle >max) max = infos[i].start_cycle;
+        if(infos[i].stop_cycle >max) max = infos[i].stop_cycle;
     }
     return max;
 }
