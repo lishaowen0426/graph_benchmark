@@ -101,7 +101,7 @@ int main( int argc, char** argv){
 
 
 #ifdef LABOS
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e LLC-load-misses,LLC-store-misses,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM  -a  2>&1 &")){}
+    if(system("/home/blepers/linux/tools/perf/perf  record -e cycles:pp -F 9997  -a  2>&1 &")){}
 //#ifdef PMEM
 //    printf("PMEM\n");
 //    if(system("/home/blepers/linux/tools/perf/perf  stat -e mem_inst_retired.lock_loads,MEM_LOAD_RETIRED.LOCAL_PMM,OCR.ALL_PF_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE,OCR.DEMAND_RFO.PMM_HIT_LOCAL_PMM.SNOOP_NONE  -a  2>&1 &")){}

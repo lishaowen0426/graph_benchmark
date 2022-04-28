@@ -5,8 +5,23 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/mman.h>
-
 typedef void* (*func_t)(void* arg);
+
+
+static size_t access_count;
+
+static thread_local __uint128_t g_lehmer64_state;
+static void init_seed(unsigned int i){
+   srand(i);
+   g_lehmer64_state = rand();
+
+}
+static uint64_t lehmer64() {
+  g_lehmer64_state *= 0xda942042e4dd58b5;
+  return g_lehmer64_state >> 64;
+}
+
+
 
 char* create_buffer(const char* path, size_t& sz){
     //check if the file exists
@@ -15,7 +30,7 @@ char* create_buffer(const char* path, size_t& sz){
       die("the buffer file exists!"); 
     }
     
-    sz = ( sz + PAGESIZE -1 )/PAGESIZE*PAGESIZE; // align size to pagesize
+    sz = ( sz + 4096 -1 )/4096*4096; // align size to pagesize
 
     int fd = open(path,O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
     if(fd == -1) {
@@ -27,23 +42,29 @@ char* create_buffer(const char* path, size_t& sz){
     int result = write(fd, "", 1);
     if(result == -1) die("write failed");
 
-
+#ifndef PMEM
     void* addr = mmap(0, sz, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(addr == MAP_FAILED) die("mmap failed");
-    
+#else
+    void* addr = pmem_map_file(path, 0,0,0777, NULL,NULL);
+    if(!pmem_is_pmem(addr,sz)){
+        die("File is not in pmem");
+    }
+#endif
+    memset(addr, 0, sz);
     return (char*)addr;
 
 }
 
 
 
-thread_info_t* create_thread_info(char* buffer, size_t sz, int threads, size_t stride,  AccessMode m ){
+thread_info_t* create_thread_info(char* buffer, size_t sz, int threads,   AccessMode m ){
 
     thread_info_t* infos = (thread_info_t*)malloc(threads * sizeof(thread_info_t));
     memset(infos, 0, threads*sizeof(thread_info_t)); 
 
-    size_t access_sz = sz/threads; 
-    size_t access_count = access_sz/stride; 
+    size_t partition = sz/threads; 
+    access_count = partition/access_size; 
     if(access_count == 0) die("access_count is 0");
     
     cpu_set_t mask;
@@ -58,17 +79,19 @@ thread_info_t* create_thread_info(char* buffer, size_t sz, int threads, size_t s
         }
         
         if(m == GROUPED){
-            infos[i].start = buffer + i*access_sz;
-            infos[i].end = buffer + (i+1)*access_sz;
-            infos[i].stride = stride;
+            infos[i].start = buffer + i*partition;
+            infos[i].end = buffer + (i+1)*partition;
+            infos[i].stride = access_size;
         }else{
-            infos[i].start = buffer + i * stride;
-            infos[i].stride = threads*stride;
-            infos[i].end = buffer + sz + i*stride;
+            infos[i].start = buffer + i * access_size;
+            infos[i].stride = threads*access_size;
+            infos[i].end = buffer + sz + i*access_size;
         }
 
-        //printf("i: %d, start: %lu, end: %lu, stride: %lu\n", i, (long)(infos[i].start - buffer),(long)(infos[i].end - buffer), infos[i].stride);
+        infos[i].buffer = (char*)aligned_alloc(4096, access_size);
+        memset(infos[i].buffer, 42, access_size);
 
+        init_seed((unsigned)i);
     }
     return infos;
 
@@ -107,47 +130,115 @@ void launch(thread_info_t* infos, int threads, func_t func){
 }
 
 
-void read_hub(thread_info_t* infos, int threads, size_t stride, SRMode srmode){
+void read_hub(thread_info_t* infos, int threads,  SRMode srmode){
    
     func_t func = nullptr; 
     if(srmode == SEQ){
-       switch(stride){
-            case 64:
-                func = read_nt_64;
-              break;
-            case 128:
-                func = read_nt_128;
-              break;
-            case 256:
-                func = read_nt_256;
-              break;
-            case 512:
-                func = read_nt_512;
-              break;
-            default:
-              die("wrong read stride");
-       }
+        func = read_seq;
     }else{
-        die("random read has not been implemented");
+        func = read_random;
     } 
     launch(infos, threads, func);
 }
 
 
-void* read_nt_64(void* arg){
+void* read_seq(void* arg){
     thread_info_t* info = (thread_info_t*)arg;
+    char* b = info->buffer;
+    char* base = info->start;
+    size_t s = info->stride;
+    char* memaddr;
 
     barrier_cross(&barrier);
-    rdtscll(info->stop_cycle);
+    rdtscll(info->start_cycle);
     UNROLL(
-        for(char* t = info->start; t < info->end; t += info->stride){
-            char* memaddr = t;
-    
+        for(size_t i = 0; i < nb_accesses; i++){
+            memaddr = base + (i&access_count)*s;
+            memcpy(b, memaddr, access_size); 
         }
     )
+    rdtscll(info->stop_cycle);
     return nullptr; 
 
 }
-void* read_nt_128(void* arg){}
-void* read_nt_256(void* arg){}
-void* read_nt_512(void* arg){}
+void* read_random(void* arg){
+
+    thread_info_t* info = (thread_info_t*)arg;
+    char* b = info->buffer;
+    char* base = info->start;
+    size_t s = info->stride;
+    char* memaddr;
+
+    barrier_cross(&barrier);
+    rdtscll(info->start_cycle);
+    UNROLL(
+        for(size_t i = 0; i < nb_accesses; i++){
+            size_t loc = lehmer64()%access_count;
+            memaddr = base + loc*s;
+            memcpy(b, memaddr, access_size); 
+        }
+    )
+    rdtscll(info->stop_cycle);
+    return nullptr; 
+
+}
+void write_hub(thread_info_t* infos, int threads,  SRMode srmode){
+   
+    func_t func = nullptr; 
+    if(srmode == SEQ){
+        func = write_seq;
+    }else{
+        func = write_random;
+    } 
+    launch(infos, threads, func);
+}
+
+
+void* write_seq(void* arg){
+    thread_info_t* info = (thread_info_t*)arg;
+    char* b = info->buffer;
+    char* base = info->start;
+    size_t s = info->stride;
+    char* memaddr;
+
+    barrier_cross(&barrier);
+    rdtscll(info->start_cycle);
+    UNROLL(
+        for(size_t i = 0; i < nb_accesses; i++){
+            memaddr = base + (i&access_count)*s;
+#ifndef PMEM
+            memcpy( memaddr,b, access_size); 
+#else
+            pmem_memcpy_persist(memaddr, b, access_size);
+#endif
+        }
+    )
+    rdtscll(info->stop_cycle);
+    return nullptr; 
+
+}
+void* write_random(void* arg){
+
+    thread_info_t* info = (thread_info_t*)arg;
+    char* b = info->buffer;
+    char* base = info->start;
+    size_t s = info->stride;
+    char* memaddr;
+
+    barrier_cross(&barrier);
+    rdtscll(info->start_cycle);
+    UNROLL(
+        for(size_t i = 0; i < nb_accesses; i++){
+            size_t loc = lehmer64()%access_count;
+            memaddr = base + loc*s;
+#ifndef PMEM
+            memcpy( memaddr,b, access_size); 
+#else
+            pmem_memcpy_persist(memaddr, b, access_size);
+#endif
+        }
+    )
+    rdtscll(info->stop_cycle);
+    return nullptr; 
+
+}
