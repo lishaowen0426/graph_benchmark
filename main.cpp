@@ -109,7 +109,7 @@ int main( int argc, char** argv){
     if(system("/home/blepers/linux/tools/perf/perf  stat -e OCR.DEMAND_DATA_RD.L3_HIT.ANY_SNOOP,OCR.DEMAND_DATA_RD.L3_MISS_LOCAL_DRAM.SNOOP_NONE   -a  2>&1 &")){}
 #endif
 #else
-    if(system("perf stat -e LLC-load-misses,LLC-store-misses,MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM  -a  2>&1 &")){}
+    if(system("perf stat -e LLC-load-misses,LLC-store-misses  -a  2>&1 &")){}
 #endif
     //cache_event_setup();
     sleep(2);

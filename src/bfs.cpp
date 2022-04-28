@@ -5,6 +5,7 @@
 #include "oneapi/tbb.h"
 #include "oneapi/tbb/combinable.h"
 #include "oneapi/tbb/scalable_allocator.h"
+#include "oneapi/tbb/enumerable_thread_specific.h"
 #include "unistd.h"
 #include "pebs.h"
 
@@ -25,8 +26,6 @@ void bfs_hub(Graph* graph, uint32_t source, int opt){
     
     visited = (PROP_TY*)prop_malloc(graph->nb_nodes*sizeof(PROP_TY));
     memset(visited,0, graph->nb_nodes*sizeof(PROP_TY));
-    printf("visited start: %p\n", visited);
-    printf("visited end: %p\n", visited+NB_NODES);
 
     frontier.reserve(NB_NODES);
     frontier_next.reserve(NB_NODES);
@@ -72,22 +71,21 @@ void bfs_push(Graph* graph, uint32_t start){
 
     uint32_t* const out_edges = graph->out_edges;
     size_t* const out_edge_offsets = graph->out_edge_offsets;
-    printf("out_edges start: %p\n", out_edges);
-    printf("out_edges end: %p\n", out_edges+NB_EDGES);
-    printf("out_edge_offsets start: %p\n", out_edge_offsets);
-    printf("out_edge_offsets end: %p\n", out_edge_offsets+NB_NODES);
-
+    enumerable_thread_specific<size_t> loads;
     while( (to_process=frontier.size())!= 0){
+        loads.clear();
         iterations++;
         auto f = [&](){parallel_for(blocked_range<sz_t>(0, to_process ),
         [&](const blocked_range<sz_t>& r){
             thread_buffer& local_buffer = buffers[gettid()%THREADS]; 
+            size_t thread_load = 0;
             register size_t i = r.begin();
             const size_t stop = r.end(); 
             for(; i <stop; i++){
                 uint32_t src = frontier[i];
                 register size_t beg = out_edge_offsets[src];
                 register const size_t end = out_edge_offsets[src+1];
+                thread_load += end - beg;
                 for(;beg < end; beg++){
                     uint32_t dst = out_edges[beg];
 
@@ -99,10 +97,14 @@ void bfs_push(Graph* graph, uint32_t start){
 
                 }
             }
+
+            loads.local() = thread_load;
         } );};
         arena.execute(f);
         frontier.clear();
         for(size_t i = 0; i < THREADS; i++) buffers[i].transfer(frontier);
+        printf("ite:%lu\n",iterations);
+        for(auto l : loads) printf("%lu\n", l );
     }
     size_t v =0;
     for(size_t i = 0; i < NB_NODES; i++) v += visited[i];
