@@ -62,10 +62,10 @@ int main(int argc, char** argv){
 
     uint64_t start = find_start(infos, threads);
     uint64_t stop = find_stop(infos, threads);
-    uint64_t total_bytes = threads*nb_accesses*access_size;
+    uint64_t total_bytes = (threads*nb_accesses*access_size)/1024/1024;
     float time = (float)(stop-start)/(float)get_cpu_freq(); 
     printf("%s-%s time %lu ( %fs )\n",((srmode==SEQ)?"Sequential":"Random"), ((rwmode == READ)?"read":"write"), stop - start, time);
-    printf("bandwidth: %.5f\n", (float)total_bytes/time);
+    printf("bandwidth: %.5f MB/s\n", (float)total_bytes/time);
     if(remove(path) == -1){
         die("delete buffer file failed");
     }
