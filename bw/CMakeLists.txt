@@ -19,8 +19,9 @@ find_package(PkgConfig REQUIRED)
 
 if(LABOS)
     set(ENV{PKG_CONFIG_PATH} "/home/$ENV{USER}/pmdk/install/lib/pkgconfig")
-    pkg_search_module(LIBPMEM REQUIRED libpmem)
+    pkg_search_module(LIBPMEM REQUIRED IMPORTED_TARGET libpmem)
     message(STATUS "${LIBPMEM_LINK_LIBRARIES}")
+    target_link_libraries(bw PRIVATE PkgConfig::LIBPMEM)
 endif()
 
 
