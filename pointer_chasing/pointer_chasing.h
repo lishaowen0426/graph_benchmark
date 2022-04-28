@@ -40,7 +40,6 @@ Entry<P>* create_random(size_t& buffer_sz, size_t& len, bool shuffle){
     std::srand(time(0));
 #endif
     if(shuffle){
-        printf("shuffle!\n");
         std::random_shuffle(indices, indices+len);
     }
 

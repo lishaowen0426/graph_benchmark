@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv){
 
-    if(argc < 4){
+    if(argc < 3){
         printf("./chasing [buffer size in bytes] [count] ");
         exit(0);
     }
