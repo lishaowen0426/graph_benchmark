@@ -4,9 +4,10 @@
 #include <linux/perf_event.h>
 #include "config.h"
 #include <pthread.h>
+#include <vector>
 
 extern bool should_terminate;
-
+extern std::vector<uint64_t> sampled_address;
 struct perf_sample{
     struct perf_event_header header;
     uint64_t ip;

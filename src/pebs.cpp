@@ -10,7 +10,7 @@
 #define PERF_PAGES  (1+ (1<<16))
 #define PAGE_SIZE 4096
 
-
+std::vector<uint64_t> sampled_address;
 struct perf_event_mmap_page** cache_event_pages;
 int* cache_event_fd;
 
@@ -132,7 +132,7 @@ void* cache_collect_sample(void* arg){
                         ps = (struct perf_sample*)ph;
                         vaddr = ps->addr;
                         ip = ps->ip;
-                        printf("%p\n", vaddr);
+                        sampled_address.push_back(vaddr);
                         //printf("%p\n", ip);
                         break;
                     default:
@@ -160,6 +160,7 @@ void launch_cache_collect(pthread_t* thread, int core, void* arg){
     if(pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &mask)){
         die("set CPU affinity mask failed\n");
     }
+    sampled_address.reserve(10000);
     should_terminate = false;
     if(pthread_create(thread, &attr, cache_collect_sample, arg)){
         die("create cache collect thread failed\n");
@@ -167,7 +168,7 @@ void launch_cache_collect(pthread_t* thread, int core, void* arg){
     return;
 }
 void terminate_cache_collect(pthread_t* thread){
-
+    printf("%lu addresses\n", sampled_address.size());
     should_terminate = true;
     if(pthread_join(*thread,nullptr)){
         die("join failed\n");

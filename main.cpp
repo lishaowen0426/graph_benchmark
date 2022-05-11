@@ -103,21 +103,21 @@ int main( int argc, char** argv){
 #ifdef LABOS
 #ifdef PMEM
 //    printf("PMEM\n");
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e OCR.DEMAND_DATA_RD.L3_HIT.ANY_SNOOP, OCR.DEMAND_DATA_RD.PMM_HIT_LOCAL_PMM.SNOOP_NONE  -a  2>&1 &")){}
+//    if(system("/home/blepers/linux/tools/perf/perf  stat -e MEM_LOAD_RETIRED.LOCAL_PMM  -a  2>&1 &")){}
 #else
 //    printf("DRAM\n");
-    if(system("/home/blepers/linux/tools/perf/perf  stat -e OCR.DEMAND_DATA_RD.L3_HIT.ANY_SNOOP,OCR.DEMAND_DATA_RD.L3_MISS_LOCAL_DRAM.SNOOP_NONE   -a  2>&1 &")){}
+//    if(system("/home/blepers/linux/tools/perf/perf  stat -e MEM_LOAD_L3_MISS_RETIRED.LOCAL_DRAM   -a  2>&1 &")){}
 #endif
 #else
-    if(system("perf stat -e LLC-load-misses,LLC-store-misses  -a  2>&1 &")){}
+//    if(system("perf stat -e LLC-load-misses,LLC-store-misses  -a  2>&1 &")){}
 #endif
-    //cache_event_setup();
+    cache_event_setup();
     sleep(2);
     
     bfs_hub(graph,0,mode);
 
     //pr_hub(graph,iterations,mode);
-    if(system("echo pmem | sudo -S killall -INT -w perf")) {};
+    //if(system("echo pmem | sudo -S killall -INT -w perf")) {};
 #ifdef PMEM
     RP_close();
 #endif
