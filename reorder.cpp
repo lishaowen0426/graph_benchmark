@@ -126,14 +126,16 @@ void  sort_by_degree(const char* input, const char* output){
     for(size_t i = 0; i < NB_EDGES; i++) printf("( %u -> %u)\n", edges[i].src, edges[i].dst);
     */
     {
+        printf("output\n");
         std::ofstream ofs (output, std::ofstream::out|std::ofstream::binary);
         ofs.write((const char*)edges, NB_EDGES*sizeof(edge_t));
         ofs.flush();
-
+        ofs.close();
         
         std::ofstream ofs_info (std::string(output)+std::string(".ini"), std::ofstream::out);
         ofs_info<<"Nodes: " << NB_NODES<<"\n"<<"Edges: "<<NB_EDGES<<"\n";
         ofs_info.flush();
+        ofs_info.close();
 
     }
 
@@ -166,7 +168,7 @@ int main(int argc, char** argv){
                 debug = true;
                 break;
             case 'm':
-                maintain = false;
+                maintain = true;
                 break;
             default:
                 printf("./reorder -i <input> -o <output> -v <nodes> -a<ascending> -m<maintain 0>");
